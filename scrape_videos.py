@@ -35,7 +35,7 @@ def load_existing_data(config):
         try:
             with open(config['DATA_TXT'], 'r', encoding='utf-8') as f:
                 existing_data = json.load(f)
-            return existing_data
+            return [v for v in existing_data if v.get('id') != 'N/A']
         except Exception:
             return []
     return []
@@ -59,6 +59,8 @@ def scrape_page(page_num, config):
     video_data = []
     for item in items:
         video_id = item.get('id', '').replace('video-', '') if item.get('id') else 'N/A'
+        if video_id == 'N/A':
+            continue
         a_tag = item.find('a')
         title = a_tag.get('title', 'N/A') if a_tag else 'N/A'
         link = urljoin(config['DOMAIN'], a_tag.get('href', 'N/A')) if a_tag else 'N/A'
@@ -89,13 +91,14 @@ def scrape_page(page_num, config):
 
 # Check if page 1 has new videos by comparing video IDs
 def has_new_videos_page1(config):
-    existing_data = all_video_data.copy()
-    video_data = scrape_page(1, config)
-    if not video_data:
-        return False
-    new_ids = {v['id'] for v in video_data if v['id'] != 'N/A'}
-    existing_ids = {v['id'] for v in existing_data if v['id'] != 'N/A'}
-    return bool(new_ids - existing_ids)
+    existing_ids = {v['id'] for v in all_video_data if v['id'] != 'N/A'}
+    print(f"Existing IDs: {existing_ids}")
+    temp_video_data = scrape_page(1, config)  # Scrape without modifying all_video_data
+    new_ids = {v['id'] for v in temp_video_data if v['id'] != 'N/A'}
+    print(f"New IDs from page 1: {new_ids}")
+    new_videos = new_ids - existing_ids
+    print(f"New video IDs detected: {new_videos}")
+    return bool(new_videos)
 
 # Worker for pagination
 def worker(config):
@@ -148,6 +151,8 @@ def scrape_detail(detail_link):
         return None
     detail_data = {}
     detail_data['video_id'] = video_div.get('data-id', 'N/A')
+    if detail_data['video_id'] == 'N/A':
+        return None
     stats_div = soup.find('div', class_='video-stats')
     if stats_div:
         detail_data['likes'] = convert_likes_dislikes(stats_div.find('span', class_='likes').text.strip() if stats_div.find('span', class_='likes') else '0')
@@ -270,6 +275,7 @@ def main():
         pending_links = [video['link'] for video in all_video_data if video.get('page', 0) <= 3 and video.get('link', 'N/A') != 'N/A']
         steps.append("Quét details cho video ở 3 trang đầu.")
     pending_links = list(set(pending_links))  # Remove duplicates
+    print(f"Total detail links to scrape: {len(pending_links)}")
     # Step 5: Queue detail links
     for link in pending_links:
         detail_queue.put(link)
