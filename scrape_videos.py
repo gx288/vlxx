@@ -41,7 +41,7 @@ def load_existing_data(config):
     return []
 
 # Scrape pagination page
-def scrape_page(page_num, config):
+def scrape_page(page_num, config, update_global=True):
     global stop_scraping
     if stop_scraping:
         return []
@@ -74,27 +74,28 @@ def scrape_page(page_num, config):
        
         data = {
             'page': page_num,
-            'id': video_id,
+            'id': str(video_id),  # Ensure ID is string
             'title': title,
             'link': link,
             'thumbnail': thumbnail,
             'ribbon': ribbon
         }
         video_data.append(data)
-        with sheets_lock:
-            existing_index = next((i for i, v in enumerate(all_video_data) if v['id'] == video_id), None)
-            if existing_index is not None:
-                all_video_data[existing_index].update(data)
-            else:
-                all_video_data.append(data)
+        if update_global:
+            with sheets_lock:
+                existing_index = next((i for i, v in enumerate(all_video_data) if v['id'] == str(video_id)), None)
+                if existing_index is not None:
+                    all_video_data[existing_index].update(data)
+                else:
+                    all_video_data.append(data)
     return video_data
 
 # Check if page 1 has new videos by comparing video IDs
 def has_new_videos_page1(config):
-    existing_ids = {v['id'] for v in all_video_data if v['id'] != 'N/A'}
+    existing_ids = {str(v['id']) for v in all_video_data if v['id'] != 'N/A'}  # Ensure string
     print(f"Existing IDs: {existing_ids}")
-    temp_video_data = scrape_page(1, config)  # Scrape without modifying all_video_data
-    new_ids = {v['id'] for v in temp_video_data if v['id'] != 'N/A'}
+    temp_video_data = scrape_page(1, config, update_global=False)  # Don't modify global data
+    new_ids = {str(v['id']) for v in temp_video_data if v['id'] != 'N/A'}  # Ensure string
     print(f"New IDs from page 1: {new_ids}")
     new_videos = new_ids - existing_ids
     print(f"New video IDs detected: {new_videos}")
@@ -150,7 +151,7 @@ def scrape_detail(detail_link):
     if not video_div:
         return None
     detail_data = {}
-    detail_data['video_id'] = video_div.get('data-id', 'N/A')
+    detail_data['video_id'] = str(video_div.get('data-id', 'N/A'))  # Ensure string
     if detail_data['video_id'] == 'N/A':
         return None
     stats_div = soup.find('div', class_='video-stats')
@@ -250,14 +251,14 @@ def main():
         print("Có video mới trên trang 1.")
         steps.append("Quét trang 1, có video mới.")
         max_pages = config['MAX_PAGES']
-        steps.append(f"Quét pagination từ trang 2 đến {config['MAX_PAGES']}.")
+        steps.append(f"Quét pagination từ trang 1 đến {config['MAX_PAGES']}.")
     else:
         print("Không có video mới trên trang 1.")
         steps.append("Quét trang 1, không có video mới.")
-        max_pages = 1  # No more pagination
-        steps.append("Không quét thêm pagination.")
-    # Step 3: Scrape pagination if needed
-    for page_num in range(2, max_pages + 1):
+        max_pages = 3  # Scrape first 3 pages for details
+        steps.append("Quét pagination trang 1 đến 3.")
+    # Step 3: Scrape pagination
+    for page_num in range(1, max_pages + 1):  # Start from 1 to ensure page 1 is updated
         page_queue.put(page_num)
     threads = []
     for _ in range(config['NUM_THREADS']):
