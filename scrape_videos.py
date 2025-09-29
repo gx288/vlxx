@@ -80,15 +80,14 @@ def scrape_page(page_num, config):
         }
         video_data.append(data)
         with sheets_lock:
-            # Check if video_id exists, update if it does, else append
-            existing_index = next((i for i, v in enumerate(all_video_data) if v['id'] == video_id and v['link'] == link), None)
+            existing_index = next((i for i, v in enumerate(all_video_data) if v['id'] == video_id), None)
             if existing_index is not None:
                 all_video_data[existing_index].update(data)
             else:
                 all_video_data.append(data)
     return video_data
 
-# Check if page 1 has new videos compared to existing data
+# Check if page 1 has new videos by comparing video IDs
 def has_new_videos_page1(config):
     existing_data = all_video_data.copy()
     video_data = scrape_page(1, config)
@@ -178,7 +177,7 @@ def detail_worker(config):
                 print(f"Scraped: {detail_link}")
                 with sheets_lock:
                     for video in all_video_data:
-                        if video['id'] == detail_data['video_id'] and video['link'] == detail_link:
+                        if video['id'] == detail_data['video_id']:
                             video.update(detail_data)  # Overwrite stats data
                             break
            
@@ -195,7 +194,7 @@ def save_data_txt(config):
     try:
         df = pd.DataFrame(all_video_data)
         df['id'] = pd.to_numeric(df['id'], errors='coerce')
-        df = df.drop_duplicates(subset=['id', 'link'], keep='last')
+        df = df.drop_duplicates(subset=['id'], keep='last')
         df = df.sort_values(by=['page', 'id'], ascending=[True, False])
         sorted_data = df.to_dict('records')
         with open(config['DATA_TXT'], 'w', encoding='utf-8') as f:
@@ -215,7 +214,7 @@ def update_google_sheets(config):
         if all_video_data:
             df = pd.DataFrame(all_video_data)
             df['id'] = pd.to_numeric(df['id'], errors='coerce')
-            df = df.drop_duplicates(subset=['id', 'link'], keep='last')
+            df = df.drop_duplicates(subset=['id'], keep='last')
             df = df.sort_values(by=['page', 'id'], ascending=[True, False])
             values = [df.columns.values.tolist()] + df.values.tolist()
            
