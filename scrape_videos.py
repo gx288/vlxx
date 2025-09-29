@@ -89,12 +89,13 @@ def scrape_page(page_num, config):
     return video_data
 
 # Check if page 1 has new videos compared to existing data
-def has_new_videos_page1(config, existing_data):
-    new_videos = scrape_page(1, config)
-    if not new_videos:
+def has_new_videos_page1(config):
+    existing_data = all_video_data.copy()
+    video_data = scrape_page(1, config)
+    if not video_data:
         return False
+    new_ids = {v['id'] for v in video_data if v['id'] != 'N/A'}
     existing_ids = {v['id'] for v in existing_data if v['id'] != 'N/A'}
-    new_ids = {v['id'] for v in new_videos if v['id'] != 'N/A'}
     return bool(new_ids - existing_ids)
 
 # Worker for pagination
@@ -189,17 +190,6 @@ def detail_worker(config):
         except Exception:
             detail_queue.task_done()
 
-# Get pending details from Sheet
-def get_pending_details(config):
-    try:
-        creds = ServiceAccountCredentials.from_json_keyfile_name(config['CREDENTIALS_FILE'], config['SCOPE'])
-        client = gspread.authorize(creds)
-        sheet = client.open_by_key(config['SHEET_ID']).sheet1
-        records = sheet.get_all_records()
-        return [row['link'] for row in records if 'link' in row and row['link'] != 'N/A']
-    except Exception:
-        return []
-
 # Save data.txt as JSON, sorted by page (asc) and id (desc)
 def save_data_txt(config):
     try:
@@ -240,6 +230,7 @@ def update_google_sheets(config):
 def main():
     global stop_scraping, queueing_complete
     start_total = time.time()
+    steps = []
     # Load config
     config = load_config()
     if not config:
@@ -247,12 +238,22 @@ def main():
         return
     # Step 1: Load existing data from data.txt
     all_video_data.extend(load_existing_data(config))
+    print(f"Đã load {len(all_video_data)} video từ data.txt")
+    steps.append(f"Đã đọc file data.txt, load {len(all_video_data)} video.")
     # Step 2: Check page 1 for new videos
-    max_pages = 2  # Default to first two pages
-    if has_new_videos_page1(config, all_video_data):
-        max_pages = config['MAX_PAGES']  # Scan all pages if new videos found
-    # Step 3: Scrape pagination
-    for page_num in range(1, max_pages + 1):
+    has_new = has_new_videos_page1(config)
+    if has_new:
+        print("Có video mới trên trang 1.")
+        steps.append("Quét trang 1, có video mới.")
+        max_pages = config['MAX_PAGES']
+        steps.append(f"Quét pagination từ trang 2 đến {config['MAX_PAGES']}.")
+    else:
+        print("Không có video mới trên trang 1.")
+        steps.append("Quét trang 1, không có video mới.")
+        max_pages = 1  # No more pagination
+        steps.append("Không quét thêm pagination.")
+    # Step 3: Scrape pagination if needed
+    for page_num in range(2, max_pages + 1):
         page_queue.put(page_num)
     threads = []
     for _ in range(config['NUM_THREADS']):
@@ -262,11 +263,14 @@ def main():
    
     for t in threads:
         t.join()
-    # Step 4: Get pending details
-    pending_links = get_pending_details(config)
-    new_unscraped = [video['link'] for video in all_video_data if 'link' in video and video['link'] != 'N/A']
-    pending_links.extend(new_unscraped)
-    pending_links = list(set(pending_links)) # Remove duplicates
+    # Step 4: Prepare pending details
+    if has_new:
+        pending_links = [video['link'] for video in all_video_data if video.get('link', 'N/A') != 'N/A']
+        steps.append("Quét details cho toàn bộ video.")
+    else:
+        pending_links = [video['link'] for video in all_video_data if video.get('page', 0) <= 3 and video.get('link', 'N/A') != 'N/A']
+        steps.append("Quét details cho video ở 3 trang đầu.")
+    pending_links = list(set(pending_links))  # Remove duplicates
     # Step 5: Queue detail links
     for link in pending_links:
         detail_queue.put(link)
@@ -291,6 +295,9 @@ def main():
     total_videos = len(all_video_data)
     total_detailed = len([video for video in all_video_data if 'views' in video])
     elapsed_total = time.time() - start_total
+    print("Tổng quát các bước thực hiện:")
+    for step in steps:
+        print("- " + step)
     print(f"Tổng kết: {total_pages} trang, {total_videos} video, {total_detailed} video chi tiết, {elapsed_total:.2f}s")
     if all_video_data:
         save_data_txt(config)
