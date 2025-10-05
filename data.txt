@@ -1368,7 +1368,7 @@
     "ribbon": "Vietsub",
     "video_id": "2887",
     "likes": 2495.0,
-    "dislikes": 2134.0,
+    "dislikes": 2135.0,
     "rating": 54.0,
     "views": 2400000.0,
     "video_code": "MEYD-124",
