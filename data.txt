@@ -1249,7 +1249,7 @@
     "ribbon": "Vietsub",
     "video_id": "2894",
     "likes": 2725.0,
-    "dislikes": 2443.0,
+    "dislikes": 2445.0,
     "rating": 53.0,
     "views": 2500000.0,
     "video_code": "ATID-620",
