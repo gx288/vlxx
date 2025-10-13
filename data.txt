@@ -1095,7 +1095,7 @@
     "thumbnail": "https://vlxx.bz/img2/2906.jpg",
     "ribbon": "Vietsub",
     "video_id": "2906",
-    "likes": 2430.0,
+    "likes": 2431.0,
     "dislikes": 1594.0,
     "rating": 60.0,
     "views": 1400000.0,
