@@ -1249,7 +1249,7 @@
     "ribbon": "Vietsub",
     "video_id": "2899",
     "likes": 1253.0,
-    "dislikes": 927.0,
+    "dislikes": 929.0,
     "rating": 57.0,
     "views": 1300000.0,
     "video_code": "START-313",
