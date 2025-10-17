@@ -1198,7 +1198,7 @@
     "ribbon": "Vietsub",
     "video_id": "2902",
     "likes": 2111.0,
-    "dislikes": 1495.0,
+    "dislikes": 1496.0,
     "rating": 59.0,
     "views": 1900000.0,
     "video_code": "IPZZ-590",
