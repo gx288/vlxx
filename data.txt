@@ -1385,7 +1385,7 @@
     "ribbon": "Vietsub",
     "video_id": "2897",
     "likes": 3460.0,
-    "dislikes": 3349.0,
+    "dislikes": 3350.0,
     "rating": 51.0,
     "views": 3600000.0,
     "video_code": "ADN-694",
