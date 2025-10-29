@@ -1232,7 +1232,7 @@
     "ribbon": "Vietsub",
     "video_id": "2906",
     "likes": 2486.0,
-    "dislikes": 1638.0,
+    "dislikes": 1639.0,
     "rating": 60.0,
     "views": 1500000.0,
     "video_code": "SONE-655",
