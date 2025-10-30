@@ -1504,7 +1504,7 @@
     "ribbon": "Vietsub",
     "video_id": "2891",
     "likes": 3088.0,
-    "dislikes": 2990.0,
+    "dislikes": 2991.0,
     "rating": 51.0,
     "views": 2900000.0,
     "video_code": "SONE-669",
