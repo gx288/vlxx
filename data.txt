@@ -1521,7 +1521,7 @@
     "ribbon": "Vietsub",
     "video_id": "2903",
     "likes": 1568.0,
-    "dislikes": 1369.0,
+    "dislikes": 1370.0,
     "rating": 53.0,
     "views": 1800000.0,
     "video_code": "START-310",
