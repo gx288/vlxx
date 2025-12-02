@@ -1521,7 +1521,7 @@
     "ribbon": "Vietsub",
     "video_id": "2914",
     "likes": 3890.0,
-    "dislikes": 3525.0,
+    "dislikes": 3526.0,
     "rating": 52.0,
     "views": 3000000.0,
     "video_code": "MEYD-916",
