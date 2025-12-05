@@ -1419,7 +1419,7 @@
     "ribbon": "Vietsub",
     "video_id": "2921",
     "likes": 1946.0,
-    "dislikes": 1467.0,
+    "dislikes": 1468.0,
     "rating": 57.0,
     "views": 1600000.0,
     "video_code": "ADN-183",
