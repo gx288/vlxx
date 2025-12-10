@@ -1436,7 +1436,7 @@
     "ribbon": "Vietsub",
     "video_id": "2922",
     "likes": 1425.0,
-    "dislikes": 1307.0,
+    "dislikes": 1308.0,
     "rating": 52.0,
     "views": 1700000.0,
     "video_code": "ATID-303",
