@@ -1163,7 +1163,7 @@
     "thumbnail": "https://vlxx.bz/img2/2977.jpg",
     "ribbon": "Vietsub",
     "video_id": "2977",
-    "likes": 1816.0,
+    "likes": 1818.0,
     "dislikes": 1406.0,
     "rating": 56.0,
     "views": 2000000.0,
