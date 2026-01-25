@@ -1368,7 +1368,7 @@
     "ribbon": "Vietsub",
     "video_id": "2982",
     "likes": 1722.0,
-    "dislikes": 1299.0,
+    "dislikes": 1300.0,
     "rating": 57.0,
     "views": 1300000.0,
     "video_code": "PPPE-370",
