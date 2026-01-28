@@ -1317,7 +1317,7 @@
     "ribbon": "Cen",
     "video_id": "2986",
     "likes": 1681.0,
-    "dislikes": 1423.0,
+    "dislikes": 1425.0,
     "rating": 54.0,
     "views": 1600000.0,
     "video_code": "SW-176",
