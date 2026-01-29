@@ -1164,7 +1164,7 @@
     "ribbon": "Uncen",
     "video_id": "2996",
     "likes": 1325.0,
-    "dislikes": 894.0,
+    "dislikes": 895.0,
     "rating": 60.0,
     "views": 1400000.0,
     "video_code": "CRB-091712-132",
