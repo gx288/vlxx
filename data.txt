@@ -1300,7 +1300,7 @@
     "ribbon": "Vietsub",
     "video_id": "2992",
     "likes": 2182.0,
-    "dislikes": 1773.0,
+    "dislikes": 1775.0,
     "rating": 55.0,
     "views": 2000000.0,
     "video_code": "RBD-719",
