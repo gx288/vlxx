@@ -1266,7 +1266,7 @@
     "ribbon": "Vietsub",
     "video_id": "2995",
     "likes": 1750.0,
-    "dislikes": 1762.0,
+    "dislikes": 1764.0,
     "rating": 50.0,
     "views": 2100000.0,
     "video_code": "JUX-678",
