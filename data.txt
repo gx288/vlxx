@@ -1198,7 +1198,7 @@
     "ribbon": "Vietsub",
     "video_id": "3000",
     "likes": 2087.0,
-    "dislikes": 2454.0,
+    "dislikes": 2455.0,
     "rating": 46.0,
     "views": 2300000.0,
     "video_code": "ADN-523",
