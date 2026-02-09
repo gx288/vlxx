@@ -1180,7 +1180,7 @@
     "thumbnail": "https://vlxx.ms/img2/3003.jpg",
     "ribbon": "Uncen",
     "video_id": "3003",
-    "likes": 1979.0,
+    "likes": 1980.0,
     "dislikes": 1516.0,
     "rating": 57.0,
     "views": 2000000.0,
