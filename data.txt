@@ -1164,7 +1164,7 @@
     "ribbon": "Vietsub",
     "video_id": "3004",
     "likes": 1880.0,
-    "dislikes": 1797.0,
+    "dislikes": 1798.0,
     "rating": 51.0,
     "views": 1900000.0,
     "video_code": "MDYD-631",
