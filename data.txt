@@ -1164,7 +1164,7 @@
     "ribbon": "Vietsub",
     "video_id": "3005",
     "likes": 2666.0,
-    "dislikes": 1893.0,
+    "dislikes": 1894.0,
     "rating": 58.0,
     "views": 2300000.0,
     "video_code": "VOSS-120",
