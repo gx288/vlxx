@@ -673,7 +673,7 @@
     "likes": 596.0,
     "dislikes": 318.0,
     "rating": 65.0,
-    "views": 653700.0,
+    "views": 654000.0,
     "video_code": "HEYZO-0873",
     "video_link": "vlxx.bz/3050",
     "description": "Đi phỏng vấn xin việc, thanh niên địt luôn nữ quản lý",
