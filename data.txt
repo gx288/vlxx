@@ -1402,7 +1402,7 @@
     "ribbon": "Uncen",
     "video_id": "3010",
     "likes": 1304.0,
-    "dislikes": 968.0,
+    "dislikes": 969.0,
     "rating": 57.0,
     "views": 1300000.0,
     "video_code": "1PON-102525_001",
