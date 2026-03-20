@@ -1404,7 +1404,7 @@
     "likes": 844.0,
     "dislikes": 490.0,
     "rating": 63.0,
-    "views": 813900.0,
+    "views": 814300.0,
     "video_code": "CRB-060118-678",
     "video_link": "vlxx.bz/3017",
     "description": "Một đêm sung sướng cùng em nữ sinh trong khách sạn",
