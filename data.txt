@@ -1370,7 +1370,7 @@
     "likes": 900.0,
     "dislikes": 597.0,
     "rating": 60.0,
-    "views": 897300.0,
+    "views": 897500.0,
     "video_code": "1PON-102815_179",
     "video_link": "vlxx.bz/3020",
     "description": "Em gái say xỉn trong bar và anh chủ quán may mắn",
