@@ -1300,7 +1300,7 @@
     "ribbon": "Vietsub",
     "video_id": "3029",
     "likes": 1190.0,
-    "dislikes": 756.0,
+    "dislikes": 757.0,
     "rating": 61.0,
     "views": 1100000.0,
     "video_code": "ADN-282",
