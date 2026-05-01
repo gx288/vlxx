@@ -1231,7 +1231,7 @@
     "thumbnail": "https://vlxx.moi/img2/3054.jpg",
     "ribbon": "Uncen",
     "video_id": "3054",
-    "likes": 1216.0,
+    "likes": 1217.0,
     "dislikes": 707.0,
     "rating": 63.0,
     "views": 1100000.0,
