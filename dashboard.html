@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VLXX Scraper Dashboard</title>
+    <!-- Load HLS.js library to play .m3u8/Google CDN streams locally in the browser -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -494,6 +496,83 @@
             border-radius: 8px;
             border: 1px dashed var(--border);
         }
+
+        /* Premium Crimson Video Player Styles */
+        .video-player-panel {
+            background-color: #000;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 25px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.2);
+            overflow: hidden;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .player-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-main);
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            max-width: 85%;
+        }
+
+        .close-player-btn {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .close-player-btn:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background-color: #000;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .video-wrapper video, .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -532,7 +611,17 @@
         </div>
     </div>
 
-    <!-- Server Statistics Table -->
+    <!-- Crimson Premium Player Container (Hidden by default) -->
+    <div class="video-player-panel" id="local-player-panel">
+        <div class="player-header">
+            <span class="player-title" id="local-player-title">Đang phát: Chưa chọn video</span>
+            <span class="close-player-btn" onclick="closeLocalPlayer()" title="Đóng trình phát">✕</span>
+        </div>
+        <div class="video-wrapper">
+            <!-- Dynamic video tag or iframe will be loaded here -->
+            <div id="player-target-container"></div>
+        </div>
+    </div>
     <div class="server-stats-panel">
         <h3>📊 THỐNG KÊ CHI TIẾT CÁC LOẠI SERVER VÀ LIÊN KẾT</h3>
         <table class="stats-table">
@@ -769,6 +858,83 @@
         }
         const cmd = `ffmpeg -headers "Referer: https://vlxx.moi/" -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -i "${playUrl}" -c copy "${cleanTitle}.mp4"`;
         copyText(cmd);
+    }
+
+    // Global Hls instance pointer to clean up when closing/switching
+    let currentHlsInstance = null;
+
+    // Play video locally inside the dashboard using Hls.js or an iframe
+    function playLocalVideo(url, title, type, isEmbed) {
+        const panel = document.getElementById('local-player-panel');
+        const titleEl = document.getElementById('local-player-title');
+        const container = document.getElementById('player-target-container');
+
+        // Reset and clean up any existing video player
+        closeLocalPlayer();
+
+        titleEl.textContent = `Đang phát: ${title}`;
+        panel.style.display = 'flex';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        if (isEmbed) {
+            // Load clean iframe player (Blogger, Seaporn, etc.)
+            container.innerHTML = `<iframe src="${url}" allowfullscreen allow="autoplay; encrypted-media"></iframe>`;
+        } else {
+            // It is a direct stream link (needs local proxy to decrypt PNG header in real-time)
+            let proxyPlayUrl = url;
+            if (url.includes('qooglevideo.com') || url.includes('googlevideo.com') || url.endsWith('.vl') || url.includes('.m3u8')) {
+                proxyPlayUrl = `http://127.0.0.1:8899/m3u8?url=${encodeURIComponent(url)}`;
+            }
+
+            container.innerHTML = `<video id="local-video-player" controls autoplay style="width:100%; height:100%; object-fit:contain;"></video>`;
+            const video = document.getElementById('local-video-player');
+
+            if (type === 'hls' || url.endsWith('.vl') || url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    const hls = new Hls({
+                        maxMaxBufferLength: 30, // moderate buffer size for speed
+                        enableWorker: true
+                    });
+                    currentHlsInstance = hls;
+                    hls.loadSource(proxyPlayUrl);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        video.play().catch(() => {});
+                    });
+                    hls.on(Hls.Events.ERROR, function (event, data) {
+                        if (data.fatal) {
+                            console.error("Fatal HLS Error:", data);
+                        }
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Fallback for native Safari HLS support
+                    video.src = proxyPlayUrl;
+                    video.play().catch(() => {});
+                } else {
+                    container.innerHTML = `<div style="color:var(--danger); padding:20px; text-align:center;">Trình duyệt của bạn không hỗ trợ phát luồng HLS. Hãy sử dụng VLC!</div>`;
+                }
+            } else {
+                // Raw MP4 video
+                video.src = proxyPlayUrl;
+                video.play().catch(() => {});
+            }
+        }
+    }
+
+    // Close local player and free resources
+    function closeLocalPlayer() {
+        const panel = document.getElementById('local-player-panel');
+        const container = document.getElementById('player-target-container');
+        
+        // Stop and destroy HLS instance if active
+        if (currentHlsInstance) {
+            currentHlsInstance.destroy();
+            currentHlsInstance = null;
+        }
+
+        // Empty the container to stop any playing iframe or video
+        container.innerHTML = '';
+        panel.style.display = 'none';
     }
 
     // Copy to Clipboard helper
@@ -1159,10 +1325,13 @@
                                     ${srv.type === 'hls' ? `
                                         <button class="action-btn" onclick="copyFFmpegCommand('${safeUrl}', '${safeTitle}')">FFmpeg Cmd</button>
                                     ` : ''}
-                                ` : ''}
+                                    <button class="action-btn play-btn" onclick="playLocalVideo('${safeUrl}', '${safeTitle}', '${srv.type}', false)">Phát tại đây 📺</button>
+                                ` : `
+                                    <button class="action-btn play-btn" onclick="playLocalVideo('${embedUrl || safeUrl}', '${safeTitle}', 'embed', true)">Phát tại đây 📺</button>
+                                `}
                                 
                                 ${(embedUrl || isEmbedPage) ? `
-                                    <a class="action-btn play-btn" href="${embedUrl || srv.url}" target="_blank" rel="noreferrer" style="text-decoration: none;">Xem ngay ↗</a>
+                                    <a class="action-btn" href="${embedUrl || srv.url}" target="_blank" rel="noreferrer" style="text-decoration: none;">Xem ngay ↗</a>
                                 ` : ''}
                             ` : `
                                 <button class="action-btn" style="flex: 2; cursor: default; border-style: dashed; opacity: 0.7;" disabled>
