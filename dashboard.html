@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLXX Scraper Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #161f30;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --primary: #ef4444; /* Crimson Red for VLXX branding */
+            --primary-hover: #dc2626;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        h1 span {
+            color: var(--primary);
+        }
+
+        .refresh-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Guide Panel */
+        .guide-panel {
+            background-color: rgba(239, 68, 68, 0.03);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .guide-panel h3 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .guide-list {
+            list-style-type: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .guide-item span {
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+            font-size: 11.5px;
+        }
+
+        /* Server Stats Table */
+        .server-stats-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .server-stats-panel h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: var(--text-main);
+            border-left: 3px solid var(--primary);
+            padding-left: 10px;
+            font-weight: 600;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 5px;
+            text-align: left;
+        }
+
+        .stats-table th, .stats-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stats-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-table td {
+            color: var(--text-main);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .stat-card.success .value { color: var(--success); }
+        .stat-card.danger .value { color: var(--danger); }
+        .stat-card.warning .value { color: var(--warning); }
+
+        /* Search & Filter Section */
+        .control-panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13.5px;
+        }
+
+        .search-input:focus {
+            outline: 1px solid var(--primary);
+        }
+
+        .filter-select {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13.5px;
+        }
+
+        .filter-select:focus {
+            outline: 1px solid var(--primary);
+        }
+
+        /* Pagination Section */
+        .pagination-container {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pagination-info {
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .page-btn {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .go-to-page-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .go-to-input {
+            width: 55px;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        /* Table/List Section */
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .video-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            transition: transform 0.2s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-thumb-container {
+            position: relative;
+            width: 140px;
+            height: 95px;
+            flex-shrink: 0;
+        }
+
+        .video-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            background-color: #000;
+            border: 1px solid var(--border);
+        }
+
+        .video-ribbon {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .video-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-title {
+            font-size: 16.5px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .video-meta b {
+            color: var(--text-main);
+        }
+
+        .video-description {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .server-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .server-tag {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 15px;
+            font-size: 12.5px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .link-display {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .status-badge {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-badge.live { background-color: var(--success); }
+        .status-badge.die { background-color: var(--danger); }
+        .status-badge.unknown { background-color: var(--warning); }
+
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            margin-top: 3px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 10.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            min-width: 70px;
+        }
+
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(239, 68, 68, 0.03);
+        }
+
+        .action-btn.play-btn {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--success);
+        }
+
+        .action-btn.play-btn:hover {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Báo Cáo Tiến Độ Cào Phim & Quản Lý Link <span>VLXX</span></h1>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px;">Dữ liệu tự động cập nhật từ cơ sở dữ liệu ngoại tuyến của VLXX.moi</p>
+        </div>
+        <button class="refresh-btn" onclick="location.reload()">Tải Lại Giao Diện (F5)</button>
+    </header>
+
+    <!-- Guide Panel -->
+    <div class="guide-panel">
+        <h3>💡 HƯỚNG DẪN KIỂM TRA VÀ PHÁT VIDEO TRỰC TIẾP</h3>
+        <div class="guide-list">
+            <div class="guide-item" style="border-left: 3px solid var(--primary); background-color: rgba(239, 68, 68, 0.02);">
+                <strong>⚡ BẮT BUỘC CHẠY PROXY ĐỂ XEM/TẢI (Dành cho VLC / FFmpeg)</strong>
+                Do cơ chế chống tải lậu của máy chủ (ngụy trang phân đoạn video thành file ảnh PNG ảo), bạn <b>phải chạy Proxy Server nội bộ</b> trước khi sử dụng các nút VLC Cmd hoặc FFmpeg Cmd:
+                <code style="background-color: rgba(255,255,255,0.05); padding: 3px 6px; display: inline-block; margin-top: 5px; border-radius: 4px; color: var(--primary);">python scripts/proxy_server.py</code>
+            </div>
+            <div class="guide-item">
+                <strong>1. Phát bằng VLC Player (Khuyên dùng - Không quảng cáo)</strong>
+                Click nút <b>"VLC Cmd"</b> để copy lệnh. Mở PowerShell dán vào rồi nhấn Enter để phát mượt mà chất lượng cao qua Proxy.
+                <span>*Đường dẫn VLC chuẩn hóa: C:\\Program Files\\VideoLAN\\VLC\\vlc.exe</span>
+            </div>
+            <div class="guide-item">
+                <strong>2. Xem ngay trên Trình duyệt</strong>
+                Click nút <b style="color: var(--success);">"Xem ngay ↗"</b> để mở trình phát nhúng của web. Nếu bị chặn (IP address could not be found), hãy bật ứng dụng **WARP 1.1.1.1** để vượt tường lửa nhà mạng!
+            </div>
+            <div class="guide-item">
+                <strong>3. Tải ngoại tuyến bằng FFmpeg</strong>
+                Click nút <b>"FFmpeg Cmd"</b> để copy lệnh tải chất lượng cao gốc giải mã tự động qua Proxy để lưu trữ vĩnh viễn về máy.
+            </div>
+        </div>
+    </div>
+
+    <!-- Server Statistics Table -->
+    <div class="server-stats-panel">
+        <h3>📊 THỐNG KÊ CHI TIẾT CÁC LOẠI SERVER VÀ LIÊN KẾT</h3>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th>Tên Server trên Web</th>
+                    <th>Nhà Cung Cấp (Phân loại)</th>
+                    <th>Tổng số link tìm thấy</th>
+                    <th>Số link Hoạt Động (Live)</th>
+                    <th>Số link Hỏng (Die)</th>
+                    <th>Tỷ lệ hoạt động</th>
+                </tr>
+            </thead>
+            <tbody id="server-stats-rows">
+                <!-- Will be populated by JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- General Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Tổng số bài viết đã quét</h3>
+            <div class="value" id="stat-total">0</div>
+        </div>
+        <div class="stat-card" style="border-color: var(--primary);">
+            <h3>Tổng liên kết tìm thấy</h3>
+            <div class="value" id="stat-links-total" style="color: var(--primary);">0</div>
+        </div>
+        <div class="stat-card success">
+            <h3>Tổng liên kết hoạt động (Live)</h3>
+            <div class="value" id="stat-live">0</div>
+        </div>
+        <div class="stat-card danger">
+            <h3>Tổng liên kết hỏng (Die)</h3>
+            <div class="value" id="stat-die">0</div>
+        </div>
+        <div class="stat-card warning">
+            <h3>Video mất toàn bộ Server</h3>
+            <div class="value" id="stat-all-die">0</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="control-panel">
+        <input type="text" class="search-input" id="search-bar" placeholder="Tìm kiếm tên video, mã JAV, diễn viên..." oninput="onSearchOrFilterChange()">
+        
+        <select class="filter-select" id="filter-status" onchange="onSearchOrFilterChange()">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="has-live">Có ít nhất 1 Server SỐNG</option>
+            <option value="all-die">Bị CHẾT toàn bộ Server</option>
+        </select>
+
+        <select class="filter-select" id="filter-time" onchange="onSearchOrFilterChange()">
+            <option value="all">Tất cả thời gian</option>
+            <option value="today">Hôm nay</option>
+            <option value="3days">3 ngày qua</option>
+            <option value="7days">7 ngày qua</option>
+            <option value="30days">30 ngày qua</option>
+        </select>
+
+        <select class="filter-select" id="sort-by" onchange="onSearchOrFilterChange()">
+            <option value="newest">Mới cập nhật</option>
+            <option value="views">Xem nhiều nhất</option>
+            <option value="likes">Thích nhiều nhất</option>
+            <option value="combo">Combo Hot (Xem + Thích)</option>
+        </select>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" id="pagination-panel" style="display: none;">
+        <div class="pagination-info" id="pagination-info-text">Hiển thị 0-0 trên 0 kết quả</div>
+        <div class="pagination-controls">
+            <button class="page-btn" id="btn-first-page" onclick="goToPage(1)">&lt;&lt;</button>
+            <button class="page-btn" id="btn-prev-page" onclick="changePage(-1)">&lt;</button>
+            <div id="page-numbers-container" style="display: flex; gap: 3px;"></div>
+            <button class="page-btn" id="btn-next-page" onclick="changePage(1)">&gt;</button>
+            <button class="page-btn" id="btn-last-page" onclick="goToPage(totalPages)">&gt;&gt;</button>
+        </div>
+        <div class="go-to-page-container">
+            <span>Đi đến trang:</span>
+            <input type="number" class="go-to-input" id="input-go-to" min="1" onkeypress="handleGoToKey(event)">
+            <button class="page-btn" onclick="triggerGoToPage()">Đi</button>
+        </div>
+    </div>
+
+    <!-- Video List -->
+    <div class="video-list" id="video-list-container">
+        <!-- Will be populated by JS -->
+    </div>
+
+    <!-- Unsupported Servers Log Panel -->
+    <div class="server-stats-panel" id="unsupported-log-panel" style="margin-top: 30px; border-color: var(--danger); display: none;">
+        <h3 style="color: var(--danger); border-left-color: var(--danger);">📋 DANH SÁCH MÁY CHỦ CHƯA HỖ TRỢ / CẦN PHÂN TÍCH (LOG RIÊNG)</h3>
+        <p style="color: var(--text-muted); font-size: 12.5px; margin-bottom: 15px;">
+            Dưới đây là danh sách các máy chủ có định dạng lạ chưa được giải mã của VLXX. Bạn có thể chụp ảnh hoặc sao chép mã này gửi cho Antigravity để cập nhật bộ giải mã!
+        </p>
+        <table class="stats-table" style="font-size: 12.5px;">
+            <thead>
+                <tr>
+                    <th style="width: 35%;">Tên Video</th>
+                    <th style="width: 15%;">Tên Server trên Web</th>
+                    <th style="width: 10%;">data-type</th>
+                    <th style="width: 30%;">Raw data-video (Mã hóa)</th>
+                    <th style="width: 10%;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="unsupported-log-rows">
+                <!-- Will be populated by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="toast" id="toast-msg">Đã copy vào bộ nhớ tạm!</div>
+
+<!-- CORS Bypass: Load data dynamically as a local script -->
+<script src="data/vlxx_database.js"></script>
+
+<script>
+    let rawDatabase = [];
+    let filteredDatabase = [];
+    
+    // Pagination parameters
+    const ITEMS_PER_PAGE = 30;
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // Clean title helper for filenames
+    function getCleanTitle(title) {
+        return title.replace(/[\\/:*?"<>|]/g, "_").substring(0, 50);
+    }
+
+    // Helper to identify the actual backend provider of the server
+    function getServerProvider(srvUrl, embedUrl) {
+        if (!srvUrl || typeof srvUrl !== 'string') return 'Không rõ';
+        if (srvUrl.startsWith('raw_id:')) return 'Chưa giải mã';
+        
+        try {
+            const urlObj = new URL(srvUrl);
+            const host = urlObj.hostname.toLowerCase();
+            
+            if (host.includes('qooglevideo.com') || host.includes('googlevideo.com')) return 'Google HLS CDN';
+            if (host.includes('vlstream.net')) return 'VLStream Server';
+            if (host.includes('seaporn.net') || host.includes('seaporn.com')) return 'Seaporn Embed';
+            if (host.includes('blogspot.com') || host.includes('blogger.com') || host.includes('googleusercontent.com')) return 'Google Blogger';
+            if (host.includes('ok.ru') || host.includes('odnoklassniki.ru')) return 'Ok.ru';
+            
+            return host;
+        } catch (e) {
+            if (embedUrl) {
+                try {
+                    return new URL(embedUrl).hostname;
+                } catch (err) {}
+            }
+            return 'Khác';
+        }
+    }
+
+    // Helper to determine the durability/longevity of the link
+    function getLinkDurability(srvUrl) {
+        if (!srvUrl || typeof srvUrl !== 'string') return { type: 'unknown', label: 'Không rõ', color: '#94a3b8', priority: 4 };
+        if (srvUrl.startsWith('raw_id:')) return { type: 'unknown', label: 'Chưa giải mã', color: '#64748b', priority: 3.5 };
+        
+        try {
+            const urlObj = new URL(srvUrl);
+            const host = urlObj.hostname.toLowerCase();
+            const params = urlObj.searchParams;
+            const hasExpiry = params.has('expires') || params.has('sign') || params.has('token') || params.has('ip');
+            
+            // Check if the domain is a known blocked domain (ISP filters in Vietnam)
+            const isBlockedDomain = host.includes('seaporn.net');
+            
+            if (hasExpiry) {
+                let label = 'Tạm thời (Có hạn/Khóa IP)';
+                if (params.has('expires')) {
+                    const expSec = parseInt(params.get('expires'));
+                    if (expSec) {
+                        const date = new Date(expSec * 1000);
+                        label = `Tạm thời (Hết hạn: ${date.toLocaleDateString('vi-VN')} ${date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})})`;
+                    }
+                }
+                const priority = isBlockedDomain ? 3.0 : 2.0;
+                const labelSuffix = isBlockedDomain ? ' [Nhà mạng chặn/Ưu tiên thấp]' : '';
+                return { 
+                    type: 'temporary', 
+                    label: label + labelSuffix, 
+                    color: isBlockedDomain ? '#ef4444' : '#f59e0b', 
+                    priority: priority 
+                };
+            }
+            
+            if (host.includes('qooglevideo.com') || host.includes('googlevideo.com')) {
+                return { type: 'permanent', label: 'Vĩnh viễn (Google/Tốc độ cao)', color: '#10b981', priority: 1 };
+            }
+            
+            if (host.includes('blogspot.com') || host.includes('blogger.com') || host.includes('googleusercontent.com')) {
+                return { type: 'stable', label: 'Vĩnh viễn (Blogger/Không chặn)', color: '#10b981', priority: 1.2 };
+            }
+            
+            if (isBlockedDomain) {
+                return { 
+                    type: 'blocked', 
+                    label: 'Ổn định (Embed) [Nhà mạng chặn/Ưu tiên thấp]', 
+                    color: '#ef4444', 
+                    priority: 2.8 
+                };
+            }
+            
+            return { type: 'stable', label: 'Ổn định (Embed)', color: '#a855f7', priority: 1.5 };
+        } catch (e) {
+            return { type: 'unknown', label: 'Không rõ', color: '#94a3b8', priority: 4 };
+        }
+    }
+
+    // Copy VLC command
+    function copyVlcCommand(streamUrl) {
+        let playUrl = streamUrl;
+        // If it's a HLS stream from Google CDN (.vl or .m3u8), route it through our local decrypting proxy
+        if (streamUrl.includes('qooglevideo.com') || streamUrl.includes('googlevideo.com') || streamUrl.endsWith('.vl') || streamUrl.includes('.m3u8')) {
+            playUrl = `http://127.0.0.1:8899/m3u8?url=${encodeURIComponent(streamUrl)}`;
+        }
+        const cmd = `& "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe" "${playUrl}" :http-referrer="https://vlxx.moi/" :http-user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"`;
+        copyText(cmd);
+    }
+
+    // Copy FFmpeg command
+    function copyFFmpegCommand(streamUrl, title) {
+        const cleanTitle = getCleanTitle(title);
+        let playUrl = streamUrl;
+        // If it's a HLS stream from Google CDN, route it through our local decrypting proxy
+        if (streamUrl.includes('qooglevideo.com') || streamUrl.includes('googlevideo.com') || streamUrl.endsWith('.vl') || streamUrl.includes('.m3u8')) {
+            playUrl = `http://127.0.0.1:8899/m3u8?url=${encodeURIComponent(streamUrl)}`;
+        }
+        const cmd = `ffmpeg -headers "Referer: https://vlxx.moi/" -user_agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -i "${playUrl}" -c copy "${cleanTitle}.mp4"`;
+        copyText(cmd);
+    }
+
+    // Copy to Clipboard helper
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast-msg');
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        });
+    }
+
+    // Initialize Dashboard
+    function initDashboard() {
+        if (window.vlxx_data && Array.isArray(window.vlxx_data)) {
+            rawDatabase = window.vlxx_data;
+            rawDatabase.sort((a, b) => {
+                const dateB = b.date ? new Date(b.date) : (b.extracted_at ? new Date(b.extracted_at) : 0);
+                const dateA = a.date ? new Date(a.date) : (a.extracted_at ? new Date(a.extracted_at) : 0);
+                return dateB - dateA;
+            });
+            
+            calculateStatsAndServers();
+            onSearchOrFilterChange();
+        } else {
+            document.getElementById('video-list-container').innerHTML = `
+                <div class="empty-state">
+                    <h3>Không thể tải cơ sở dữ liệu</h3>
+                    <p style="margin-top: 10px;">Vui lòng đảm bảo tệp dữ liệu <b>data/vlxx_database.js</b> đã được tạo ra bằng cách chạy script cào.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Calculate Dashboard & Server statistics
+    function calculateStatsAndServers() {
+        let total = rawDatabase.length;
+        let liveLinks = 0;
+        let dieLinks = 0;
+        let videosAllDie = 0;
+        let serverStats = {};
+
+        rawDatabase.forEach(item => {
+            let hasLive = false;
+            let servers = item.servers || {};
+            
+            Object.entries(servers).forEach(([name, srv]) => {
+                const cleanName = name.trim();
+                const provider = getServerProvider(srv.url, srv.embed_url);
+                const key = `${cleanName}||${provider}`;
+                
+                if (!serverStats[key]) {
+                    serverStats[key] = { name: cleanName, provider: provider, total: 0, live: 0, die: 0 };
+                }
+                
+                serverStats[key].total++;
+                
+                const isLive = srv.status && srv.status.startsWith('live');
+                if (isLive) {
+                    liveLinks++;
+                    serverStats[key].live++;
+                    hasLive = true;
+                } else {
+                    dieLinks++;
+                    serverStats[key].die++;
+                }
+            });
+
+            if (Object.keys(servers).length > 0 && !hasLive) {
+                videosAllDie++;
+            }
+        });
+
+        document.getElementById('stat-total').textContent = total.toLocaleString();
+        document.getElementById('stat-live').textContent = liveLinks.toLocaleString();
+        document.getElementById('stat-die').textContent = dieLinks.toLocaleString();
+        document.getElementById('stat-all-die').textContent = videosAllDie.toLocaleString();
+
+        const tbody = document.getElementById('server-stats-rows');
+        let tableHtml = '';
+        
+        if (Object.keys(serverStats).length === 0) {
+            tableHtml = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Không tìm thấy dữ liệu máy chủ nào.</td></tr>';
+        } else {
+            const sortedServers = Object.entries(serverStats).sort((a, b) => b[1].total - a[1].total);
+            sortedServers.forEach(([key, data]) => {
+                const pct = data.total > 0 ? ((data.live / data.total) * 100).toFixed(1) : 0;
+                tableHtml += `
+                    <tr>
+                        <td><strong>${data.name}</strong></td>
+                        <td style="color: var(--primary); font-weight: 600;">${data.provider}</td>
+                        <td>${data.total.toLocaleString()}</td>
+                        <td style="color: var(--success); font-weight: 600;">${data.live.toLocaleString()}</td>
+                        <td style="color: var(--danger);">${data.die.toLocaleString()}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 600;">${pct}%</span>
+                                <div style="flex: 1; height: 6px; background-color: var(--bg-color); border-radius: 3px; min-width: 80px; overflow: hidden;">
+                                    <div style="width: ${pct}%; height: 100%; background-color: var(--success); border-radius: 3px;"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        tbody.innerHTML = tableHtml;
+
+        // Calculate and update total links card
+        let totalLinks = liveLinks + dieLinks;
+        document.getElementById('stat-links-total').textContent = totalLinks.toLocaleString();
+
+        // Populate Unsupported Servers Log Table
+        let unsupportedItems = [];
+        rawDatabase.forEach(item => {
+            let servers = item.servers || {};
+            Object.entries(servers).forEach(([name, srv]) => {
+                if (srv.url && srv.url.startsWith('raw_id:')) {
+                    unsupportedItems.push({
+                        title: item.title,
+                        source_url: item.source_url,
+                        server_name: name,
+                        data_type: srv.data_type || '?',
+                        raw_id: srv.url.replace('raw_id:', '')
+                    });
+                }
+            });
+        });
+
+        const logPanel = document.getElementById('unsupported-log-panel');
+        const logTbody = document.getElementById('unsupported-log-rows');
+        
+        if (unsupportedItems.length > 0) {
+            logPanel.style.display = 'block';
+            let logHtml = '';
+            unsupportedItems.forEach(item => {
+                logHtml += `
+                    <tr>
+                        <td><strong>${item.title}</strong></td>
+                        <td><span style="color: var(--warning); font-weight: 600;">${item.server_name}</span></td>
+                        <td><code style="background-color: rgba(255,255,255,0.05); padding: 2px 4px; border-radius: 3px;">${item.data_type}</code></td>
+                        <td><div class="link-display" title="${item.raw_id}">${item.raw_id}</div></td>
+                        <td><a href="${item.source_url}" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">Xem Trang Gốc ↗</a></td>
+                    </tr>
+                `;
+            });
+            logTbody.innerHTML = logHtml;
+        } else {
+            logPanel.style.display = 'none';
+        }
+    }
+
+    // Triggered when user types in search bar or changes filter dropdown
+    function onSearchOrFilterChange() {
+        const query = document.getElementById('search-bar').value.toLowerCase().trim();
+        const statusFilter = document.getElementById('filter-status').value;
+        const timeFilter = document.getElementById('filter-time').value;
+        const sortBy = document.getElementById('sort-by').value;
+
+        // Helper to parse views and likes strings into numbers
+        const parseMetric = (val) => {
+            if (!val) return 0;
+            if (typeof val === 'number') return val;
+            const str = val.toString().toLowerCase().replace(/,/g, '').trim();
+            if (str.includes('k')) return parseFloat(str.replace('k', '')) * 1000;
+            if (str.includes('m')) return parseFloat(str.replace('m', '')) * 1000000;
+            return parseInt(str) || 0;
+        };
+
+        // 1. Filter Database
+        filteredDatabase = rawDatabase.filter(item => {
+            const titleMatch = item.title.toLowerCase().includes(query);
+            const urlMatch = item.source_url.toLowerCase().includes(query);
+            const idMatch = item.id.includes(query);
+            const actressMatch = item.actress && item.actress.toLowerCase().includes(query);
+            const codeMatch = item.video_code && item.video_code.toLowerCase().includes(query);
+            const textMatch = titleMatch || urlMatch || idMatch || actressMatch || codeMatch;
+
+            let servers = Object.values(item.servers || {});
+            let hasLive = servers.some(srv => srv.status && srv.status.startsWith('live'));
+            
+            let statusMatch = true;
+            if (statusFilter === 'has-live') {
+                statusMatch = hasLive;
+            } else if (statusFilter === 'all-die') {
+                statusMatch = servers.length > 0 && !hasLive;
+            }
+
+            let timeMatch = true;
+            if (timeFilter !== 'all') {
+                const targetDateStr = item.date || item.extracted_at;
+                if (!targetDateStr) {
+                    timeMatch = false;
+                } else {
+                    const itemDate = new Date(targetDateStr);
+                    const now = new Date();
+                    const diffTime = Math.abs(now - itemDate);
+                    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+                    if (timeFilter === 'today' && diffDays > 1) {
+                        timeMatch = false;
+                    } else if (timeFilter === '3days' && diffDays > 3) {
+                        timeMatch = false;
+                    } else if (timeFilter === '7days' && diffDays > 7) {
+                        timeMatch = false;
+                    } else if (timeFilter === '30days' && diffDays > 30) {
+                        timeMatch = false;
+                    }
+                }
+            }
+
+            return textMatch && statusMatch && timeMatch;
+        });
+
+        // 2. Sort Database
+        filteredDatabase.sort((a, b) => {
+            if (sortBy === 'views') {
+                return parseMetric(b.views) - parseMetric(a.views);
+            } else if (sortBy === 'likes') {
+                return parseMetric(b.likes) - parseMetric(a.likes);
+            } else if (sortBy === 'combo') {
+                const scoreA = parseMetric(a.views) + parseMetric(a.likes) * 10;
+                const scoreB = parseMetric(b.views) + parseMetric(b.likes) * 10;
+                return scoreB - scoreA;
+            } else {
+                // Default: newest (by publish date, fallback to scrape date, fallback to ID)
+                const dateB = b.date ? new Date(b.date) : (b.extracted_at ? new Date(b.extracted_at) : 0);
+                const dateA = a.date ? new Date(a.date) : (a.extracted_at ? new Date(a.extracted_at) : 0);
+                if (dateB - dateA !== 0) {
+                    return dateB - dateA;
+                }
+                return parseInt(b.id) - parseInt(a.id);
+            }
+        });
+
+        currentPage = 1;
+        totalPages = Math.ceil(filteredDatabase.length / ITEMS_PER_PAGE) || 1;
+        
+        const paginationPanel = document.getElementById('pagination-panel');
+        if (filteredDatabase.length > 0) {
+            paginationPanel.style.display = 'flex';
+        } else {
+            paginationPanel.style.display = 'none';
+        }
+        
+        document.getElementById('input-go-to').max = totalPages;
+        renderCurrentPage();
+    }
+
+    // Render videos corresponding to the current page
+    function renderCurrentPage() {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredDatabase.length);
+        
+        const infoText = document.getElementById('pagination-info-text');
+        if (filteredDatabase.length === 0) {
+            infoText.textContent = "Hiển thị 0-0 trên 0 kết quả";
+        } else {
+            infoText.textContent = `Hiển thị ${startIndex + 1}-${endIndex} trên ${filteredDatabase.length.toLocaleString()} kết quả (Trang ${currentPage}/${totalPages})`;
+        }
+
+        document.getElementById('btn-first-page').disabled = (currentPage === 1);
+        document.getElementById('btn-prev-page').disabled = (currentPage === 1);
+        document.getElementById('btn-next-page').disabled = (currentPage === totalPages);
+        document.getElementById('btn-last-page').disabled = (currentPage === totalPages);
+
+        const numberContainer = document.getElementById('page-numbers-container');
+        let pageNumbersHtml = '';
+        
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+
+        for (let p = startPage; p <= endPage; p++) {
+            const activeClass = (p === currentPage) ? 'active' : '';
+            pageNumbersHtml += `<button class="page-btn ${activeClass}" onclick="goToPage(${p})">${p}</button>`;
+        }
+        numberContainer.innerHTML = pageNumbersHtml;
+
+        const pageItems = filteredDatabase.slice(startIndex, endIndex);
+        renderVideos(pageItems);
+    }
+
+    // Navigation handlers
+    function changePage(direction) {
+        const targetPage = currentPage + direction;
+        if (targetPage >= 1 && targetPage <= totalPages) {
+            goToPage(targetPage);
+        }
+    }
+
+    function goToPage(pageNum) {
+        if (pageNum >= 1 && pageNum <= totalPages) {
+            currentPage = pageNum;
+            renderCurrentPage();
+            document.querySelector('.control-panel').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    function handleGoToKey(event) {
+        if (event.key === 'Enter') {
+            triggerGoToPage();
+        }
+    }
+
+    // Go-to page trigger
+    function triggerGoToPage() {
+        const input = document.getElementById('input-go-to');
+        const value = parseInt(input.value);
+        if (value && value >= 1 && value <= totalPages) {
+            goToPage(value);
+            input.value = '';
+        } else {
+            alert(`Vui lòng nhập số trang hợp lệ từ 1 đến ${totalPages}`);
+        }
+    }
+
+    // Render Video Cards
+    function renderVideos(list) {
+        const container = document.getElementById('video-list-container');
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <h3>Không tìm thấy kết quả phù hợp</h3>
+                    <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        list.forEach(item => {
+            let serverHtml = '';
+            let servers = item.servers || {};
+
+            // Map and sort server entries by priority
+            const sortedServerEntries = Object.entries(servers).map(([name, srv]) => {
+                const provider = getServerProvider(srv.url, srv.embed_url);
+                const durability = getLinkDurability(srv.url);
+                return { name, srv, provider, durability };
+            }).sort((a, b) => a.durability.priority - b.durability.priority);
+
+            sortedServerEntries.forEach(({ name, srv, provider, durability }, index) => {
+                let isLive = srv.status && srv.status.startsWith('live');
+                let statusClass = 'die';
+                if (isLive) {
+                    statusClass = 'live';
+                } else if (srv.status && srv.status.includes('unsupported')) {
+                    statusClass = 'unknown';
+                }
+                
+                const isDirectLink = srv.url && srv.url.startsWith('http') && !srv.url.startsWith('raw_id:');
+                const embedUrl = srv.embed_url || '';
+                
+                // Escape single quotes and backslashes for safe passing to inline onclick functions
+                const safeUrl = srv.url.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                const safeTitle = item.title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+                // Highlight the best server (first live permanent server)
+                const isBest = index === 0 && isLive && durability.type === 'permanent';
+                const borderStyle = isBest ? 'border: 1px solid var(--success); background-color: rgba(16, 185, 129, 0.03);' : '';
+                const bestBadge = isBest ? '<span style="background-color: var(--success); color: white; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: bold; margin-left: 5px; letter-spacing: 0.5px;">ƯU TIÊN</span>' : '';
+
+                // Identify if this is an embed player HTML page (Blogger, Seaporn, Ok.ru)
+                const isEmbedPage = srv.data_type === '12' || srv.data_type === '13' || srv.url.includes('blogger.com') || srv.url.includes('seaporn.net') || srv.url.includes('ok.ru');
+
+                serverHtml += `
+                    <div class="server-tag" style="${borderStyle}">
+                        <div class="server-header">
+                            <span style="font-weight: 600;">${name} - ${provider} (${srv.type.toUpperCase()})${bestBadge}</span>
+                            <span class="status-badge ${statusClass}" title="Trạng thái: ${srv.status} - Phân loại: ${durability.label}"></span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin: 3px 0; font-size: 11px;">
+                            <span style="color: ${durability.color}; font-weight: 600;">⚡ ${durability.label}</span>
+                        </div>
+                        <div class="link-display" title="${srv.url}">
+                            ${srv.url}
+                        </div>
+                        <div class="btn-group">
+                            ${isDirectLink ? `
+                                <button class="action-btn" onclick="copyText('${safeUrl}')">Copy Link</button>
+                                
+                                ${!isEmbedPage ? `
+                                    <button class="action-btn" onclick="copyVlcCommand('${safeUrl}')">VLC Cmd</button>
+                                    ${srv.type === 'hls' ? `
+                                        <button class="action-btn" onclick="copyFFmpegCommand('${safeUrl}', '${safeTitle}')">FFmpeg Cmd</button>
+                                    ` : ''}
+                                ` : ''}
+                                
+                                ${(embedUrl || isEmbedPage) ? `
+                                    <a class="action-btn play-btn" href="${embedUrl || srv.url}" target="_blank" rel="noreferrer" style="text-decoration: none;">Xem ngay ↗</a>
+                                ` : ''}
+                            ` : `
+                                <button class="action-btn" style="flex: 2; cursor: default; border-style: dashed; opacity: 0.7;" disabled>
+                                    Cần giải mã (type: ${srv.data_type})
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (Object.keys(servers).length === 0) {
+                serverHtml = '<div style="color: var(--danger); font-size: 13px;">[!] Không tìm thấy máy chủ phát video nào.</div>';
+            }
+
+            const likes = item.likes || 0;
+            const rating = item.rating || 0;
+            const actress = item.actress && item.actress !== 'N/A' ? item.actress : '';
+            const videoCode = item.video_code && item.video_code !== 'N/A' ? item.video_code : '';
+
+            html += `
+                <div class="video-card">
+                    <div class="video-thumb-container">
+                        <img class="video-thumb" src="${item.thumbnail || ''}" onerror="this.src='https://via.placeholder.com/140x95?text=No+Image'" alt="thumbnail">
+                        ${item.ribbon && item.ribbon !== 'N/A' ? `<div class="video-ribbon">${item.ribbon}</div>` : ''}
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title" title="${item.title}">${item.title}</h3>
+                        <div class="video-meta">
+                            <span>Mã số: <b>#${item.id}</b></span>
+                            ${videoCode ? `<span>Mã phim: <b style="color: var(--primary);">${videoCode}</b></span>` : ''}
+                            ${actress ? `<span>Diễn viên: <b style="color: var(--success);">${actress}</b></span>` : ''}
+                            <span>Lượt xem: <b>${item.views.toLocaleString()}</b></span>
+                            <span>Thích: <b>${likes.toLocaleString()} (${rating}%)</b></span>
+                            <span>Ngày đăng: <b>${item.date ? new Date(item.date).toLocaleString('vi-VN') : new Date(item.extracted_at).toLocaleString('vi-VN')}</b></span>
+                            <a href="${item.source_url}" target="_blank" style="color: var(--primary); text-decoration: none;">Xem trang gốc ↗</a>
+                        </div>
+                        ${item.description && item.description !== 'N/A' ? `<div class="video-description">${item.description}</div>` : ''}
+                        <div class="server-container">
+                            ${serverHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    window.onload = initDashboard;
+</script>
+</body>
+</html>
