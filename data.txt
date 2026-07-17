@@ -653,7 +653,7 @@
     "thumbnail": "https://cdn.vlimg.com/img2/3150.jpg",
     "ribbon": "Uncen",
     "video_id": "3150",
-    "likes": 2890.0,
+    "likes": 2891.0,
     "dislikes": 1256.0,
     "rating": 70.0,
     "views": 2400000.0,
