@@ -1249,7 +1249,7 @@
     "ribbon": "Uncen",
     "video_id": "3121",
     "likes": 1678.0,
-    "dislikes": 936.0,
+    "dislikes": 937.0,
     "rating": 64.0,
     "views": 1100000.0,
     "video_code": "HEYZO-1167",
