@@ -1452,7 +1452,7 @@
     "thumbnail": "https://cdn.vlimg.com/img2/3113.jpg",
     "ribbon": "Uncen",
     "video_id": "3113",
-    "likes": 2068.0,
+    "likes": 2069.0,
     "dislikes": 1277.0,
     "rating": 62.0,
     "views": 2200000.0,
