@@ -1282,7 +1282,7 @@
     "thumbnail": "https://vlxx.net/img2/3124.jpg",
     "ribbon": "Vietsub",
     "video_id": "3124",
-    "likes": 1995.0,
+    "likes": 1996.0,
     "dislikes": 1459.0,
     "rating": 58.0,
     "views": 2000000.0,
