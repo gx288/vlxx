@@ -1149,7 +1149,7 @@
     "likes": 813.0,
     "dislikes": 439.0,
     "rating": 65.0,
-    "views": 940800.0,
+    "views": 941100.0,
     "video_code": "1PON-050926_001",
     "video_link": "vlxx.net/3132",
     "description": "Nữ giúp việc ngày đầu đi làm đã bị chủ nhà gạ địt",
