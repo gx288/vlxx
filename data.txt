@@ -1317,7 +1317,7 @@
     "ribbon": "Vietsub",
     "video_id": "3128",
     "likes": 2036.0,
-    "dislikes": 1482.0,
+    "dislikes": 1483.0,
     "rating": 58.0,
     "views": 1900000.0,
     "video_code": "SNOS-177",
