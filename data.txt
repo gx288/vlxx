@@ -1521,7 +1521,7 @@
     "ribbon": "Uncen",
     "video_id": "3120",
     "likes": 1267.0,
-    "dislikes": 661.0,
+    "dislikes": 662.0,
     "rating": 66.0,
     "views": 1200000.0,
     "video_code": "HEYZO-1431",
