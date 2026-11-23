@@ -53,5 +53,8 @@ def main():
     print(f"Step 2 (Stream Link Resolve) Status: {'SUCCESS' if step2_ok else 'FAILED'}")
     print("=======================================================\n")
 
+    if not step1_ok or not step2_ok:
+        sys.exit(1)
+
 if __name__ == "__main__":
     main()

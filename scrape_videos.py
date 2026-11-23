@@ -1,14 +1,33 @@
+import sys
+try:
+    from curl_cffi import requests as cffi_requests
+    USE_CFFI = True
+except ImportError:
+    cffi_requests = None
+    USE_CFFI = False
 import requests
 from bs4 import BeautifulSoup
 import threading
 import queue
 import time
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pandas as pd
 import os
 import json
+
+DEFAULT_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+}
+
+
+def http_get(url, timeout=15):
+    if USE_CFFI:
+        return cffi_requests.get(url, headers=DEFAULT_HEADERS, impersonate="chrome120", timeout=timeout, allow_redirects=True)
+    return requests.get(url, headers=DEFAULT_HEADERS, timeout=timeout, allow_redirects=True)
 
 # Locks
 sheets_lock = threading.Lock()
@@ -41,21 +60,47 @@ def load_existing_data(config):
     return []
 
 # Scrape pagination page
-def scrape_page(page_num, config, update_global=True):
+def scrape_page(page_num, config, update_global=True, debug=False):
     global stop_scraping
-    if stop_scraping:
+    if stop_scraping and not debug:
         return []
-    url = f"{config['DOMAIN']}/" if page_num == 1 else f"{config['DOMAIN']}/new/{page_num}/"
+    url = f"{config['DOMAIN'].rstrip('/')}/" if page_num == 1 else f"{config['DOMAIN'].rstrip('/')}/new/{page_num}/"
     try:
-        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
-        response.raise_for_status()
-    except requests.exceptions.RequestException:
+        response = http_get(url, timeout=15)
+        if debug:
+            print(f"[DEBUG] GET {url} (cffi={USE_CFFI}) -> HTTP {response.status_code} | final={response.url} | len={len(response.text)}")
+        if response.status_code != 200:
+            if debug:
+                soup_err = BeautifulSoup(response.text, 'html.parser')
+                t_err = soup_err.title.get_text(strip=True) if soup_err.title else "(no title)"
+                print(f"[ERROR] Non-200 response on page {page_num}: HTTP {response.status_code} | title={t_err!r}")
+            return []
+    except Exception as e:
+        if debug:
+            print(f"[ERROR] Request failed on page {page_num} ({url}): {type(e).__name__}: {e}")
         return []
     soup = BeautifulSoup(response.text, 'html.parser')
     items = soup.find_all('div', class_='video-item')
     if not items:
-        stop_scraping = True
+        if debug:
+            t_txt = soup.title.get_text(strip=True) if soup.title else "(no title)"
+            print(f"[ERROR] 0 'div.video-item' elements found on {response.url} | title={t_txt!r} | snippet={response.text[:250].replace(chr(10), ' ')!r}")
+        if not debug:
+            stop_scraping = True
         return []
+    # Auto-detect domain redirect on page 1 if valid video items were found
+    if page_num == 1 and response.url:
+        p_orig = urlparse(config['DOMAIN'])
+        p_final = urlparse(str(response.url))
+        if p_final.scheme and p_final.netloc and p_final.netloc.lower() != p_orig.netloc.lower():
+            new_dom = f"{p_final.scheme}://{p_final.netloc}"
+            print(f"[INFO] Domain redirect detected: {config['DOMAIN']} -> {new_dom}")
+            config['DOMAIN'] = new_dom
+            try:
+                with open('config.json', 'w', encoding='utf-8') as f:
+                    json.dump(config, f, ensure_ascii=False, indent=2)
+            except Exception as ex:
+                print(f"[WARN] Could not persist updated DOMAIN to config.json: {ex}")
     video_data = []
     for item in items:
         video_id = item.get('id', '').replace('video-', '') if item.get('id') else 'N/A'
@@ -93,12 +138,14 @@ def scrape_page(page_num, config, update_global=True):
 # Check if page 1 has new videos by comparing video IDs
 def has_new_videos_page1(config):
     existing_ids = {str(v['id']) for v in all_video_data if v['id'] != 'N/A'}  # Ensure string
-    print(f"Existing IDs: {existing_ids}")
-    temp_video_data = scrape_page(1, config, update_global=False)  # Don't modify global data
+    print(f"Existing IDs count: {len(existing_ids)}")
+    temp_video_data = scrape_page(1, config, update_global=False, debug=True)  # Don't modify global data
     new_ids = {str(v['id']) for v in temp_video_data if v['id'] != 'N/A'}  # Ensure string
-    print(f"New IDs from page 1: {new_ids}")
+    print(f"IDs found on page 1 ({len(new_ids)}): {sorted(new_ids, reverse=True)[:10]}")
+    if not new_ids:
+        raise RuntimeError(f"Trang 1 ({config.get('DOMAIN')}) không trả về video nào — domain chết, bị chặn hoặc đổi cấu trúc HTML!")
     new_videos = new_ids - existing_ids
-    print(f"New video IDs detected: {new_videos}")
+    print(f"New video IDs detected ({len(new_videos)}): {sorted(new_videos, reverse=True)}")
     return bool(new_videos)
 
 # Worker for pagination
@@ -142,9 +189,10 @@ def convert_rating(rating_str):
 # Scrape detail page
 def scrape_detail(detail_link):
     try:
-        response = requests.get(detail_link, headers={'User-Agent': 'Mozilla/5.0'}, timeout=10)
-        response.raise_for_status()
-    except requests.exceptions.RequestException:
+        response = http_get(detail_link, timeout=15)
+        if response.status_code != 200:
+            return None
+    except Exception:
         return None
     soup = BeautifulSoup(response.text, 'html.parser')
     video_div = soup.find('div', id='video')
@@ -205,8 +253,8 @@ def save_data_txt(config):
         sorted_data = df.to_dict('records')
         with open(config['DATA_TXT'], 'w', encoding='utf-8') as f:
             json.dump(sorted_data, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[ERROR] save_data_txt failed: {e}")
 
 # Update Google Sheets
 def update_google_sheets(config):
@@ -228,8 +276,9 @@ def update_google_sheets(config):
             with sheets_lock:
                 sheet.clear()
                 sheet.update(values=values, range_name='A1')
-    except Exception:
-        pass
+            print(f"[OK] Updated Google Sheet ({len(df)} rows).")
+    except Exception as e:
+        print(f"[ERROR] update_google_sheets failed: {e}")
 
 # Main function
 def main():

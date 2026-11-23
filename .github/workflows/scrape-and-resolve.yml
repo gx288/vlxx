@@ -35,9 +35,14 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add data.txt data/vlxx_database.json data/vlxx_database.js
-        git commit -m "Daily update: Metadata & Stream links $(date +%Y-%m-%d)" || echo "No changes to commit"
-        git push
+        git add data.txt config.json data/vlxx_database.json data/vlxx_database.js
+        if ! git diff --staged --quiet; then
+          git commit -m "Daily update: Metadata & Stream links $(date +%Y-%m-%d)"
+          git pull --rebase origin main || true
+          git push origin HEAD:main
+        else
+          echo "No changes to commit"
+        fi
 
     - name: Upload database artifacts
       uses: actions/upload-artifact@v4

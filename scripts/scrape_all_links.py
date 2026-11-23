@@ -24,7 +24,21 @@ OUTPUT_JS = "data/vlxx_database.js"
 MAX_WORKERS = 8  # Moderate threads to be fast but polite
 DELAY_BETWEEN_REQUESTS = 0.2
 
-ACTIVE_DOMAIN = "vlxx.moi"
+def load_active_domain():
+    try:
+        if os.path.exists("config.json"):
+            with open("config.json", "r", encoding="utf-8") as f:
+                dom = json.load(f).get("DOMAIN", "")
+            if dom:
+                parsed = urlparse(dom if "://" in dom else f"https://{dom}")
+                if parsed.netloc:
+                    return parsed.netloc
+    except Exception:
+        pass
+    return "vlxx.moi"
+
+ACTIVE_DOMAIN = load_active_domain()
+error_log_count = 0
 
 file_lock = threading.Lock()
 
@@ -174,6 +188,7 @@ def resolve_server_link(page_url, srv_index, video_id, session):
 
 def scrape_video_page(page_url, session):
     """Scrape the detail page to find all server buttons and resolve them."""
+    global error_log_count
     target_url = normalize_url(page_url)
     
     page_headers = headers.copy()
@@ -181,6 +196,10 @@ def scrape_video_page(page_url, session):
     
     r = session.get(target_url, headers=page_headers, impersonate="chrome120", timeout=12)
     if r.status_code != 200:
+        with file_lock:
+            if error_log_count < 5:
+                error_log_count += 1
+                print(f"    [WARN] HTTP {r.status_code} on {target_url} (final={r.url})")
         return None
         
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -188,6 +207,11 @@ def scrape_video_page(page_url, session):
     # Find all server items in <ul class="video-servers">
     servers_list = soup.find('ul', class_='video-servers')
     if not servers_list:
+        with file_lock:
+            if error_log_count < 5:
+                error_log_count += 1
+                t_txt = soup.title.get_text(strip=True) if soup.title else "(no title)"
+                print(f"    [WARN] Missing ul.video-servers on {target_url} | title={t_txt!r} | len={len(r.text)}")
         return None
         
     items = servers_list.find_all('li', class_='video-server')
@@ -337,6 +361,9 @@ def main():
     print(f"[+] Newly scraped this session: {success_in_session}")
     print(f"[+] Total time elapsed: {elapsed:.1f} seconds.")
     print("[*] Open your dashboard to view statistics and links!")
+    if remaining_count > 0 and success_in_session == 0:
+        print(f"[❌] ERROR: 0/{remaining_count} pending videos could be resolved!")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
