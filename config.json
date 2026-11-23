@@ -1,0 +1,15 @@
+{
+  "DOMAIN": "https://vlxx.moi",
+  "NUM_THREADS": 100,
+  "DETAIL_THREADS": 100,
+  "MAX_PAGES": 200,
+  "DETAIL_DELAY": 1.0,
+  "SHEET_ID": "1kMGN_Yfzz5MJdOzNIePBNcdCN4fRvrkCFz2uO3x40uE",
+  "CREDENTIALS_FILE": "credentials.json",
+  "TEMP_CSV": "temp_videos.csv",
+  "DATA_TXT": "data.txt",
+  "SCOPE": [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/drive"
+  ]
+}
